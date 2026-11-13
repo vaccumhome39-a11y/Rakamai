@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#6b4220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ราคาไม้">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>คำนวณราคาไม้</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f1e9; --card:#fffdf9; --ink:#2b2118; --muted:#7a6a5a; --line:#e6dccd;
+    --wood:#8a5a2b; --wood-d:#6b4220; --wood-l:#f1e4d2; --accent:#2f6b3f; --warn:#a4501b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:"Sarabun",system-ui,sans-serif;font-size:16px;line-height:1.35;
+       display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+  header{flex:none;padding:8px 12px 4px;max-width:900px;width:100%;margin:0 auto;display:flex;align-items:baseline;gap:8px}
+  header h1{font-size:19px;margin:0;white-space:nowrap}
+  header .f{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  main{flex:1;min-height:0;overflow-y:auto;padding:4px 10px 8px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-content:start;
+       max-width:900px;width:100%;margin:0 auto}
+  .card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+  .card h2{font-size:14px;margin:0 0 6px;color:var(--wood-d)}
+
+  /* ชนิดไม้ */
+  .types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .hrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .hrow h2{margin:0}
+  .seg{display:flex;background:var(--wood-l);border-radius:9px;padding:3px;flex:none}
+  .seg button{font:inherit;font-size:14px;font-weight:600;border:0;background:none;color:var(--wood-d);padding:5px 12px;border-radius:7px;cursor:pointer}
+  .seg button.on{background:var(--wood);color:#fff}
+  .ty{font:inherit;color:inherit;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:6px 4px;cursor:pointer;text-align:center;line-height:1.2}
+  .ty .n{font-size:13.5px;font-weight:600;display:block}
+  .ty .p{font-size:15px;font-weight:700;color:var(--wood-d)}
+  .ty .s{font-size:10px;color:var(--accent);font-weight:600;display:block;height:12px}
+  .ty.on{background:var(--wood);border-color:var(--wood);color:#fff}
+  .ty.on .p{color:#fff}.ty.on .s{color:#d6f0dc}
+  .tnote{font-size:12px;color:var(--warn);margin:6px 2px 0}
+  .prow{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .prow .l{font-size:13px;color:var(--muted)}
+  .prow input{width:92px;font:inherit;font-weight:700;font-size:17px;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px}
+  .prow input:focus{outline:0;border-color:var(--wood)}
+  .sbtn{font:inherit;font-size:13px;font-weight:600;border-radius:8px;padding:6px 10px;border:0;cursor:pointer}
+  .sbtn.save{background:var(--accent);color:#fff}
+  .sbtn.save:disabled{background:#d6cdbf;cursor:default}
+  .sbtn.rst{background:none;border:1.5px solid var(--line);color:var(--ink)}
+  .status{font-size:11px;color:var(--muted);width:100%;min-height:0}
+  .status:empty{display:none}
+
+  /* ขนาด */
+  .fld{margin-bottom:8px}
+  .fld:last-child{margin-bottom:0}
+  .frow{display:flex;align-items:center;gap:8px}
+  .frow label{font-weight:600;font-size:15px;width:44px;flex:none}
+  .inp{flex:1;display:flex;align-items:center;border:1.5px solid var(--line);border-radius:9px;background:#fff;min-width:0}
+  .inp:focus-within{border-color:var(--wood)}
+  .inp input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:19px;font-weight:700;padding:5px 8px;background:transparent}
+  .inp span{padding:0 4px;color:var(--muted);font-size:13px}
+  .clr{border:0;background:none;color:var(--muted);font-size:18px;padding:0 8px;cursor:pointer}
+  .chips{display:flex;gap:5px;overflow-x:auto;margin:5px 0 0 52px;padding-bottom:2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;font:inherit;font-size:13px;font-weight:600;min-width:36px;padding:3px 7px;border-radius:6px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+  .chip:active{transform:scale(.95)}
+  .chip.on{background:var(--wood);border-color:var(--wood);color:#fff}
+  .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+  .two .frow label{width:auto}
+  .two .inp input{font-size:18px;padding:5px 6px}
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+  input[type=number]{-moz-appearance:textfield}
+
+  /* แถบผลลัพธ์ด้านล่าง */
+  .bar{flex:none;background:var(--wood-d);color:#fff;padding:8px 12px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(0,0,0,.12)}
+  .bar .in{max-width:900px;margin:0 auto}
+  .bar .top{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+  .bar .big{font-size:30px;font-weight:700;line-height:1}
+  .bar .per{font-size:13px;opacity:.9;text-align:right}
+  .bar .formula{font-size:12px;opacity:.8;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar .btns{display:flex;gap:6px;margin-top:7px}
+  .btn{font:inherit;font-weight:600;font-size:15px;border-radius:9px;padding:8px 10px;border:0;cursor:pointer}
+  .btn.pri{background:#fff;color:var(--wood-d);flex:1}
+  .btn.sec{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.45)}
+  .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:#fff;color:var(--wood-d);font-size:12px;margin-left:4px}
+
+  /* แผ่นรายการ */
+  .sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:10}
+  .sheet.open{display:flex}
+  .panel{background:var(--card);width:100%;max-width:640px;max-height:80dvh;border-radius:16px 16px 0 0;display:flex;flex-direction:column}
+  .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .panel .hd b{font-size:17px}
+  .panel .bd{overflow-y:auto;padding:4px 14px}
+  .panel .ft{padding:10px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+  .x{border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+  td.num{text-align:right;white-space:nowrap}
+  .del{border:0;background:none;color:var(--warn);font-size:16px;cursor:pointer}
+  .total{display:flex;justify-content:space-between;font-size:19px;font-weight:700;margin-bottom:8px}
+  .empty{color:var(--muted);font-size:14px;padding:16px 0;text-align:center}
+  .ftb{display:flex;gap:8px}
+  .ftb .btn{flex:1;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+  .toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:9px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+
+  @media (min-width:760px){
+    main{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+    .bar .big{font-size:34px}
+  }
+  @media (max-height:640px){
+    .chips{margin-top:3px}
+    .chip{padding:3px 6px;font-size:12.5px}
+    .bar .formula{display:none}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🪵 คำนวณราคาไม้</h1>
+  <span class="f">หนา × กว้าง × ยาว(ม.) × 0.0228 × ราคาต่อคิว</span>
+</header>
+
+<main>
+  <section class="card">
+    <div class="hrow"><h2>1. ชนิดไม้ (ราคาต่อคิว)</h2><div class="seg" id="seg"><button data-g="yang">ไม้ยาง</button><button data-g="teng">ไม้เต็ง</button></div></div>
+    <div class="types" id="types"></div>
+    <div class="tnote" id="tnote"></div>
+    <div class="prow">
+      <span class="l">ราคาต่อคิว</span>
+      <input id="price" type="number" inputmode="decimal">
+      <button class="sbtn save" id="savePrice" disabled>💾 บันทึกเป็นค่าเริ่มต้น</button>
+      <button class="sbtn rst" id="resetPrice">คืนราคาเดิม</button>
+      <span class="status" id="saveStatus"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2. ขนาด</h2>
+    <div id="fields"></div>
+  </section>
+</main>
+
+<div class="bar">
+  <div class="in">
+    <div class="top">
+      <div class="big" id="total">0 บาท</div>
+      <div class="per">ต่อแผ่น <b id="per">0</b> บาท</div>
+    </div>
+    <div class="formula" id="formula">กรอกขนาดไม้เพื่อคำนวณ</div>
+    <div class="btns">
+      <button class="btn pri" id="add">+ เพิ่มลงรายการ</button>
+      <button class="btn sec" id="openList">รายการ<span class="badge" id="cnt">0</span></button>
+      <button class="btn sec" id="reset">ล้าง</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <div class="hd"><b>รายการที่เพิ่มไว้</b><button class="x" id="closeList">✕</button></div>
+    <div class="bd" id="list"></div>
+    <div class="ft" id="listFt">
+      <div class="total"><span>รวมทั้งหมด</span><span id="sum">0 บาท</span></div>
+      <div class="ftb">
+        <button class="btn" id="copy">คัดลอกรายการ</button>
+        <button class="btn" id="clearList">ล้างทั้งหมด</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const K = 0.0228;
+const TYPES = [
+  {g:"yang", id:"yang1", short:"ยาง ไม่ใส",   name:"ไม้ยาง ไม่ใส", note:"กองหลังบ้าน โซนใน · มีแค่ 1.5 นิ้ว และ 3 นิ้ว", price:550},
+  {g:"yang", id:"yang2", short:"ยาง ใส",      name:"ไม้ยาง ใส", note:"กองข้างล่าง โซนร้าน · มีแค่ 1.5 นิ้ว และ 3 นิ้ว", price:630},
+  {g:"teng", id:"teng1", short:"เต็ง ปานกลาง", name:"ไม้เต็ง คุณภาพปานกลาง", note:"กองด้านหน้า · มีขนาดยาว/แผ่นใหญ่ หนาไม่เกิน 5 นิ้ว", price:650},
+  {g:"teng", id:"teng2", short:"เต็งดี 5–8″",  name:"ไม้เต็ง อย่างดี กว้าง 5–8 นิ้ว", note:"กองด้านใน · มีขนาดยาว/แผ่นใหญ่ กว้าง 5–8 นิ้ว", price:1500},
+  {g:"teng", id:"teng3", short:"เต็งดี 10″",   name:"ไม้เต็ง อย่างดี กว้าง 10 นิ้ว", note:"กองด้านใน · มีขนาดยาว/แผ่นใหญ่ กว้าง 10 นิ้ว", price:1600},
+  {g:"teng", id:"teng4", short:"เต็งดี 11″",   name:"ไม้เต็ง อย่างดี กว้าง 11 นิ้ว", note:"กองด้านใน · มีขนาดยาว/แผ่นใหญ่ กว้าง 11 นิ้ว", price:1700},
+];
+const FIELDS = [
+  {key:"t", label:"หนา", unit:"นิ้ว", chips:[0.5,1,1.5,2,2.5,3,4,5]},
+  {key:"w", label:"กว้าง", unit:"นิ้ว", chips:[1.5,2,3,4,5,6,8,10,11,12]},
+  {key:"l", label:"ยาว", unit:"ม."},
+  {key:"q", label:"จำนวน", unit:"แผ่น"},
+];
+
+let sel = TYPES[0].id;
+const vals = {t:"", w:"", l:"", q:"1"};
+let items = [];
+let saved = {};
+const LS_KEY = "woodcalc.prices";
+
+const $ = id => document.getElementById(id);
+const fmt = (n,d=2) => Number(n).toLocaleString("th-TH",{minimumFractionDigits:0,maximumFractionDigits:d});
+const typeOf = id => TYPES.find(x=>x.id===id);
+function getPrice(id){ const v=saved[id]; return (typeof v==="number" && v>0) ? v : typeOf(id).price; }
+
+function renderTypes(){
+  const box=$("types"); box.innerHTML="";
+  const g=typeOf(sel).g;
+  document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.g===g));
+  TYPES.filter(t=>t.g===g).forEach(t=>{
+    const pr=getPrice(t.id);
+    const b=document.createElement("button");
+    b.className="ty"+(t.id===sel?" on":"");
+    b.innerHTML=`<span class="n">${t.short}</span><span class="p">${fmt(pr)}</span><span class="s">${pr!==t.price?"ราคาที่บันทึก":""}</span>`;
+    b.onclick=()=>{ sel=t.id; $("price").value=pr; renderTypes(); calc(); updateSaveBtn(); setStatus(""); };
+    box.appendChild(b);
+  });
+  $("tnote").textContent = typeOf(sel).note;
+}
+
+function fieldHTML(f){
+  return `<div class="frow"><label for="f_${f.key}">${f.label}</label>
+    <div class="inp"><input id="f_${f.key}" type="number" inputmode="decimal" step="any" min="0" placeholder="0"><span>${f.unit}</span><button class="clr" tabindex="-1">×</button></div></div>`;
+}
+function bindField(d,f){
+  const inp=d.querySelector("input"); inp.value=vals[f.key];
+  inp.oninput=()=>{ vals[f.key]=inp.value; markChips(); calc(); };
+  d.querySelector(".clr").onclick=()=>{ vals[f.key]=""; inp.value=""; markChips(); calc(); inp.focus(); };
+  if(f.chips){
+    const c=document.createElement("div"); c.className="chips";
+    f.chips.forEach(v=>{
+      const b=document.createElement("button"); b.className="chip"; b.textContent=v+'"'; b.dataset.k=f.key; b.dataset.v=v;
+      b.onclick=()=>{ vals[f.key]=String(v); inp.value=v; markChips(); calc(); };
+      c.appendChild(b);
+    });
+    d.appendChild(c);
+  }
+}
+function renderFields(){
+  const box=$("fields"); box.innerHTML="";
+  FIELDS.filter(f=>f.chips).forEach(f=>{
+    const d=document.createElement("div"); d.className="fld"; d.innerHTML=fieldHTML(f); bindField(d,f); box.appendChild(d);
+  });
+  const two=document.createElement("div"); two.className="two fld";
+  FIELDS.filter(f=>!f.chips).forEach(f=>{
+    const d=document.createElement("div"); d.innerHTML=fieldHTML(f); bindField(d,f); two.appendChild(d);
+  });
+  box.appendChild(two);
+  markChips();
+}
+function markChips(){
+  document.querySelectorAll(".chip").forEach(b=>{
+    b.classList.toggle("on", vals[b.dataset.k]!=="" && Number(vals[b.dataset.k])===Number(b.dataset.v));
+  });
+}
+
+function current(){
+  const t=parseFloat(vals.t), w=parseFloat(vals.w), l=parseFloat(vals.l);
+  const q=parseFloat(vals.q)||1, p=parseFloat($("price").value), type=typeOf(sel);
+  if(!(t>0&&w>0&&l>0&&p>0)) return {ok:false};
+  const per=t*w*l*K*p;
+  return {ok:true,t,w,l,q,p,type,per,total:per*q};
+}
+function calc(){
+  const c=current();
+  if(!c.ok){ $("total").textContent="0 บาท"; $("per").textContent="0"; $("formula").textContent="กรอก หนา กว้าง ยาว เพื่อคำนวณ"; return; }
+  $("total").textContent=fmt(c.total)+" บาท";
+  $("per").textContent=fmt(c.per);
+  $("formula").textContent=`${fmt(c.t)} × ${fmt(c.w)} × ${fmt(c.l)} × 0.0228 × ${fmt(c.p)} = ${fmt(c.per)}`+(c.q!==1?` × ${fmt(c.q)} แผ่น`:"");
+}
+
+function renderList(){
+  $("cnt").textContent=items.length;
+  const box=$("list");
+  if(!items.length){ box.innerHTML='<div class="empty">ยังไม่มีรายการ</div>'; $("listFt").style.display="none"; return; }
+  $("listFt").style.display="";
+  let sum=0, h='<table>';
+  items.forEach((it,i)=>{
+    sum+=it.total;
+    h+=`<tr><td>${i+1}.</td><td>${it.name}<br><span style="color:var(--muted);font-size:12px">${fmt(it.t)}″ × ${fmt(it.w)}″ × ${fmt(it.l)} ม. × ${fmt(it.q)} แผ่น · ${fmt(it.p)}/คิว</span></td>
+      <td class="num">${fmt(it.total)}</td><td><button class="del" data-i="${i}">✕</button></td></tr>`;
+  });
+  box.innerHTML=h+'</table>';
+  $("sum").textContent=fmt(sum)+" บาท";
+  box.querySelectorAll(".del").forEach(b=>b.onclick=()=>{items.splice(+b.dataset.i,1);renderList();});
+}
+
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1500); }
+
+$("add").onclick=()=>{
+  const c=current();
+  if(!c.ok){ toast("กรุณากรอก หนา กว้าง ยาว ให้ครบ"); return; }
+  items.push({name:c.type.name,t:c.t,w:c.w,l:c.l,q:c.q,p:c.p,total:c.total});
+  renderList(); toast(`เพิ่มแล้ว (${items.length} รายการ)`);
+};
+$("reset").onclick=()=>{ vals.t="";vals.w="";vals.l="";vals.q="1"; renderFields(); calc(); };
+$("openList").onclick=()=>$("sheet").classList.add("open");
+$("closeList").onclick=()=>$("sheet").classList.remove("open");
+$("sheet").onclick=e=>{ if(e.target.id==="sheet") $("sheet").classList.remove("open"); };
+$("clearList").onclick=()=>{ items=[]; renderList(); };
+$("copy").onclick=async()=>{
+  let sum=0;
+  const lines=items.map((it,i)=>{sum+=it.total;return `${i+1}. ${it.name} ${fmt(it.t)}x${fmt(it.w)}" ยาว ${fmt(it.l)} ม. x ${fmt(it.q)} แผ่น = ${fmt(it.total)} บาท`;});
+  lines.push(`รวม ${fmt(sum)} บาท`);
+  try{ await navigator.clipboard.writeText(lines.join("\n")); toast("คัดลอกแล้ว"); }
+  catch(e){ toast("คัดลอกไม่ได้ในเบราว์เซอร์นี้"); }
+};
+
+document.querySelectorAll("#seg button").forEach(b=>b.onclick=()=>{
+  if(typeOf(sel).g===b.dataset.g) return;
+  sel=TYPES.find(t=>t.g===b.dataset.g).id;
+  $("price").value=getPrice(sel); renderTypes(); calc(); updateSaveBtn(); setStatus("");
+});
+
+/* ---------- ราคาเริ่มต้นที่บันทึกไว้ ---------- */
+function setStatus(m){ $("saveStatus").textContent=m; }
+function updateSaveBtn(){
+  const p=parseFloat($("price").value);
+  $("savePrice").disabled = !(p>0) || p===getPrice(sel);
+  $("resetPrice").style.display = getPrice(sel)!==typeOf(sel).price ? "" : "none";
+}
+function applySaved(obj){
+  const clean={};
+  if(obj && typeof obj==="object") for(const t of TYPES){ if(typeof obj[t.id]==="number" && obj[t.id]>0) clean[t.id]=obj[t.id]; }
+  const inputWasDefault = parseFloat($("price").value)===getPrice(sel);
+  saved=clean;
+  if(inputWasDefault) $("price").value=getPrice(sel);
+  renderTypes(); calc(); updateSaveBtn();
+}
+async function persist(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(saved)); }catch(e){}
+  return "บันทึกไว้ในเครื่องนี้แล้ว";
+}
+$("savePrice").onclick=async()=>{
+  const p=parseFloat($("price").value); if(!(p>0)) return;
+  saved={...saved,[sel]:p};
+  $("savePrice").disabled=true; setStatus("กำลังบันทึก…"); renderTypes();
+  setStatus(await persist()); toast("บันทึกราคาเริ่มต้นแล้ว"); updateSaveBtn();
+};
+$("resetPrice").onclick=async()=>{
+  const n={...saved}; delete n[sel]; saved=n;
+  $("price").value=getPrice(sel); renderTypes(); calc(); updateSaveBtn();
+  setStatus("กำลังบันทึก…"); setStatus(await persist()); toast("คืนราคาเดิมแล้ว");
+};
+$("price").oninput=()=>{ calc(); updateSaveBtn(); setStatus(""); };
+
+try{ const ls=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(ls) saved=ls; }catch(e){}
+$("price").value=getPrice(sel);
+renderTypes(); renderFields(); renderList(); calc(); updateSaveBtn();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
