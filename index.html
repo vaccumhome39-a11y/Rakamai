@@ -52,6 +52,25 @@
   .ty .s{font-size:10px;color:var(--accent);font-weight:600;display:block;height:12px}
   .ty.on{background:var(--wood);border-color:var(--wood);color:#fff}
   .ty.on .p{color:#fff}.ty.on .s{color:#d6f0dc}
+  .types.isother{grid-template-columns:minmax(0,1fr)}
+  .ty.cw{position:relative;padding-right:26px;padding-left:26px}
+  .ty .ed{position:absolute;top:50%;right:3px;transform:translateY(-50%);border:0;background:none;font-size:15px;color:var(--muted);padding:4px 6px;cursor:pointer}
+  .ty.on .ed{color:#fff}
+  .ty.addnew{border-style:dashed;color:var(--wood-d);background:transparent}
+  .other .ot{font-weight:700;font-size:14px;color:var(--wood-d)}
+  .other .acts{display:flex;gap:6px;flex-wrap:wrap}
+  .other .acts .btn{flex:1;font-size:14px;padding:7px 8px;white-space:nowrap}
+  .btn.ghost2{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+  .btn.danger{background:#fff;border:1.5px solid #e2b9a2;color:var(--warn)}
+  .btn.danger.arm{background:var(--warn);border-color:var(--warn);color:#fff}
+  .other .ol{width:78px;flex:none;white-space:nowrap}
+  .other{min-width:0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:10px}
+  .other label{min-width:0;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+  .other input{flex:1;min-width:0;font:inherit;font-size:16px;font-weight:600;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px}
+  .other input:focus{outline:0;border-color:var(--wood)}
+  .other .oi{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-weight:400;color:var(--muted)}
+  .other .oi input{text-align:right}
+  .btn.opick{background:var(--wood);color:#fff}
   .tnote{font-size:12px;color:var(--warn);margin:6px 2px 0}
   .prow{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
   .prow.under{border-top:1px dashed var(--line);padding-top:8px}
@@ -154,7 +173,7 @@
     </button>
     <div class="drop" id="drop">
       <div class="dropin">
-        <div class="seg" id="seg"><button data-g="yang">ไม้ยาง</button><button data-g="teng">ไม้เต็ง</button></div>
+        <div class="seg" id="seg"><button data-g="yang">ไม้ยาง</button><button data-g="teng">ไม้เต็ง</button><button data-g="other">อื่นๆ</button></div>
         <div class="types" id="types"></div>
       </div>
     </div>
@@ -233,18 +252,95 @@ const LS_KEY = "woodcalc.prices";
 
 const $ = id => document.getElementById(id);
 const fmt = (n,d=2) => Number(n).toLocaleString("th-TH",{minimumFractionDigits:0,maximumFractionDigits:d});
-const typeOf = id => TYPES.find(x=>x.id===id);
+const OTHER_NAME = "ไม้อื่นๆ";
+const DEFAULT_CUSTOMS = [{id:"c_red", name:"ไม้แดง", price:2500}];
+const LS_CUS = "woodcalc.customs";
+let customs = DEFAULT_CUSTOMS.map(x=>({...x}));
+let oForm = null;      // null | {mode:"add"} | {mode:"edit", id}
+let delArm = false;
+const esc = t => String(t).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function cleanCustoms(list){
+  if(!Array.isArray(list)) return null;
+  return list.filter(x=>x && typeof x.id==="string" && /^c_[\w-]+$/.test(x.id) && typeof x.price==="number" && x.price>0)
+             .map(x=>({id:x.id, name:String(x.name||OTHER_NAME).slice(0,60), price:x.price}));
+}
+function typeOf(id){
+  const c=customs.find(x=>x.id===id);
+  if(c) return {g:"other", id:c.id, short:c.name, name:c.name, note:"ไม้อื่นๆ (เพิ่มเอง)", price:c.price};
+  return TYPES.find(x=>x.id===id) || TYPES[0];
+}
 function frac(v){
   const w=Math.floor(v), r=Math.round((v-w)*100)/100;
   const m={0.25:"¼",0.5:"½",0.75:"¾"};
   return m[r] ? (w?w:"")+m[r] : String(v);
 }
-function getPrice(id){ const v=saved[id]; return (typeof v==="number" && v>0) ? v : typeOf(id).price; }
+function getPrice(id){
+  const c=customs.find(x=>x.id===id); if(c) return c.price;
+  const v=saved[id]; return (typeof v==="number" && v>0) ? v : typeOf(id).price;
+}
+
+function renderOtherForm(box){
+  const isEdit = oForm.mode==="edit";
+  const c = isEdit ? customs.find(x=>x.id===oForm.id) : null;
+  box.innerHTML=`<div class="other">
+    <div class="ot">${isEdit?"แก้ไขไม้":"เพิ่มไม้ใหม่"}</div>
+    <label><span class="ol">ชื่อไม้</span><input id="oName" type="text" maxlength="60"></label>
+    <label><span class="ol">ราคาต่อคิว</span><span class="oi"><input id="oPrice" type="number" inputmode="decimal" placeholder="0"> บาท</span></label>
+    <div class="acts">
+      ${isEdit
+        ? `<button class="btn opick" id="oSave">💾 บันทึก</button><button class="btn danger" id="oDel">🗑 ลบ</button>`
+        : `<button class="btn opick" id="oSave">✓ เพิ่มและใช้ไม้นี้</button>`}
+      <button class="btn ghost2" id="oCancel">ยกเลิก</button>
+    </div>
+  </div>`;
+  $("oName").value = c ? c.name : OTHER_NAME;
+  $("oPrice").value = c ? c.price : "";
+  delArm=false;
+  $("oCancel").onclick=()=>{ oForm=null; renderTypes(); };
+  $("oSave").onclick=()=>{
+    const price=parseFloat($("oPrice").value);
+    if(!(price>0)){ toast("กรุณาใส่ราคาต่อคิว"); $("oPrice").focus(); return; }
+    const name=$("oName").value.trim()||OTHER_NAME;
+    if(isEdit){
+      customs=customs.map(x=>x.id===c.id?{...x,name,price}:x);
+      toast("แก้ไขแล้ว");
+      oForm=null; renderTypes(); calc();
+    }else{
+      const id="c_"+Date.now().toString(36);
+      customs=[...customs,{id,name,price}];
+      sel=id; oForm=null; renderTypes(); calc(); toggleDrop(false);
+      toast(`เพิ่ม "${name}" แล้ว`);
+    }
+    persistCustoms();
+  };
+  if(isEdit) $("oDel").onclick=()=>{
+    if(!delArm){ delArm=true; $("oDel").classList.add("arm"); $("oDel").textContent="กดอีกครั้งเพื่อลบ"; return; }
+    customs=customs.filter(x=>x.id!==c.id);
+    if(sel===c.id) sel=TYPES[0].id;
+    oForm=null; renderTypes(); calc(); persistCustoms(); toast("ลบแล้ว");
+  };
+}
 
 function renderTypes(){
   const box=$("types"); box.innerHTML="";
   const g=viewG;
   document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.g===g));
+  box.classList.toggle("isother", g==="other" && !!oForm);
+  if(g==="other"){
+    if(oForm){ renderOtherForm(box); refreshSel(); return; }
+    customs.forEach(c=>{
+      const d=document.createElement("div");
+      d.className="ty cw"+(c.id===sel?" on":""); d.setAttribute("role","button"); d.tabIndex=0;
+      d.innerHTML=`<span class="n">${esc(c.name)}</span><button class="ed" title="แก้ไข / ลบ">✎</button>`;
+      d.onclick=()=>{ sel=c.id; renderTypes(); calc(); toggleDrop(false); };
+      d.querySelector(".ed").onclick=e=>{ e.stopPropagation(); oForm={mode:"edit",id:c.id}; renderTypes(); };
+      box.appendChild(d);
+    });
+    const a=document.createElement("button");
+    a.className="ty addnew"; a.innerHTML='<span class="n">+ เพิ่มไม้ใหม่</span>';
+    a.onclick=()=>{ oForm={mode:"add"}; renderTypes(); };
+    box.appendChild(a);
+  }
   TYPES.filter(t=>t.g===g).forEach(t=>{
     const b=document.createElement("button");
     b.className="ty"+(t.id===sel?" on":"");
@@ -252,12 +348,25 @@ function renderTypes(){
     b.onclick=()=>{ sel=t.id; renderTypes(); calc(); toggleDrop(false); };
     box.appendChild(b);
   });
+  refreshSel();
+}
+async function persistCustoms(){
+  try{ localStorage.setItem(LS_CUS, JSON.stringify(customs)); }catch(e){}
+}
+function applyCustoms(list){
+  const c=cleanCustoms(list); if(!c) return;
+  customs=c;
+  if(sel.startsWith("c_") && !customs.find(x=>x.id===sel)) sel=TYPES[0].id;
+  if(!oForm) renderTypes(); else refreshSel();
+  calc();
+}
+function refreshSel(){
   $("tnote").textContent = typeOf(sel).note;
   $("pkName").textContent = typeOf(sel).name;
 }
 function toggleDrop(open){
   if(open===undefined) open=!$("drop").classList.contains("open");
-  if(open){ viewG=typeOf(sel).g; renderTypes(); }
+  if(open){ viewG=typeOf(sel).g; oForm=null; renderTypes(); }
   $("drop").classList.toggle("open",open);
   $("picker").setAttribute("aria-expanded",open);
 }
@@ -351,7 +460,7 @@ $("copy").onclick=async()=>{
   catch(e){ toast("คัดลอกไม่ได้ในเบราว์เซอร์นี้"); }
 };
 
-document.querySelectorAll("#seg button").forEach(b=>b.onclick=()=>{ viewG=b.dataset.g; renderTypes(); });
+document.querySelectorAll("#seg button").forEach(b=>b.onclick=()=>{ viewG=b.dataset.g; oForm=null; renderTypes(); });
 $("picker").onclick=()=>toggleDrop();
 // เลื่อนให้เห็นราคารวม เวลาแป้นพิมพ์มือถือขึ้นมา
 function showResult(){
@@ -413,6 +522,7 @@ $("resetPrice").onclick=async()=>{
 };
 
 try{ const ls=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(ls) saved=ls; }catch(e){}
+try{ const lc=cleanCustoms(JSON.parse(localStorage.getItem(LS_CUS)||"null")); if(lc) customs=lc; }catch(e){}
 renderTypes(); renderFields(); renderList(); calc(); renderEdit();
 
 if("serviceWorker" in navigator){
