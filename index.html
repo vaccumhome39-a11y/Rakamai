@@ -34,7 +34,18 @@
   .types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
   .hrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
   .hrow h2{margin:0}
-  .seg{display:flex;background:var(--wood-l);border-radius:9px;padding:3px;flex:none}
+  .seg{display:flex;background:var(--wood-l);border-radius:9px;padding:3px;margin-bottom:6px}
+  .seg button{flex:1}
+  .picker{width:100%;display:flex;align-items:center;gap:8px;font:inherit;color:inherit;background:#fff;border:1.5px solid var(--wood);border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left}
+  .picker .pk{flex:1;display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0}
+  .picker b{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .picker #pkPrice{font-weight:700;color:var(--wood-d);white-space:nowrap}
+  .picker .arr{font-size:16px;color:var(--wood);transition:transform .25s}
+  .picker[aria-expanded="true"] .arr{transform:rotate(180deg)}
+  .drop{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease}
+  .drop.open{grid-template-rows:1fr}
+  .dropin{overflow:hidden;min-height:0}
+  .drop.open .dropin{padding-top:8px}
   .seg button{font:inherit;font-size:14px;font-weight:600;border:0;background:none;color:var(--wood-d);padding:5px 12px;border-radius:7px;cursor:pointer}
   .seg button.on{background:var(--wood);color:#fff}
   .ty{font:inherit;color:inherit;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:6px 4px;cursor:pointer;text-align:center;line-height:1.2}
@@ -128,8 +139,16 @@
 
 <main>
   <section class="card">
-    <div class="hrow"><h2>1. ชนิดไม้ (ราคาต่อคิว)</h2><div class="seg" id="seg"><button data-g="yang">ไม้ยาง</button><button data-g="teng">ไม้เต็ง</button></div></div>
-    <div class="types" id="types"></div>
+    <h2>1. ชนิดไม้ (ราคาต่อคิว)</h2>
+    <button class="picker" id="picker" aria-expanded="false">
+      <span class="pk"><b id="pkName"></b><span id="pkPrice"></span></span><span class="arr">▾</span>
+    </button>
+    <div class="drop" id="drop">
+      <div class="dropin">
+        <div class="seg" id="seg"><button data-g="yang">ไม้ยาง</button><button data-g="teng">ไม้เต็ง</button></div>
+        <div class="types" id="types"></div>
+      </div>
+    </div>
     <div class="tnote" id="tnote"></div>
     <div class="prow">
       <span class="l">ราคาต่อคิว</span>
@@ -194,6 +213,7 @@ const FIELDS = [
 ];
 
 let sel = TYPES[0].id;
+let viewG = TYPES[0].g;
 const vals = {t:"", w:"", l:"", q:"1"};
 let items = [];
 let saved = {};
@@ -202,21 +222,34 @@ const LS_KEY = "woodcalc.prices";
 const $ = id => document.getElementById(id);
 const fmt = (n,d=2) => Number(n).toLocaleString("th-TH",{minimumFractionDigits:0,maximumFractionDigits:d});
 const typeOf = id => TYPES.find(x=>x.id===id);
+function frac(v){
+  const w=Math.floor(v), r=Math.round((v-w)*100)/100;
+  const m={0.25:"¼",0.5:"½",0.75:"¾"};
+  return m[r] ? (w?w:"")+m[r] : String(v);
+}
 function getPrice(id){ const v=saved[id]; return (typeof v==="number" && v>0) ? v : typeOf(id).price; }
 
 function renderTypes(){
   const box=$("types"); box.innerHTML="";
-  const g=typeOf(sel).g;
+  const g=viewG;
   document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.g===g));
   TYPES.filter(t=>t.g===g).forEach(t=>{
     const pr=getPrice(t.id);
     const b=document.createElement("button");
     b.className="ty"+(t.id===sel?" on":"");
     b.innerHTML=`<span class="n">${t.short}</span><span class="p">${fmt(pr)}</span><span class="s">${pr!==t.price?"ราคาที่บันทึก":""}</span>`;
-    b.onclick=()=>{ sel=t.id; $("price").value=pr; renderTypes(); calc(); updateSaveBtn(); setStatus(""); };
+    b.onclick=()=>{ sel=t.id; $("price").value=pr; renderTypes(); calc(); updateSaveBtn(); setStatus(""); toggleDrop(false); };
     box.appendChild(b);
   });
   $("tnote").textContent = typeOf(sel).note;
+  $("pkName").textContent = typeOf(sel).name;
+  $("pkPrice").textContent = fmt(getPrice(sel))+" /คิว";
+}
+function toggleDrop(open){
+  if(open===undefined) open=!$("drop").classList.contains("open");
+  if(open){ viewG=typeOf(sel).g; renderTypes(); }
+  $("drop").classList.toggle("open",open);
+  $("picker").setAttribute("aria-expanded",open);
 }
 
 function fieldHTML(f){
@@ -230,7 +263,7 @@ function bindField(d,f){
   if(f.chips){
     const c=document.createElement("div"); c.className="chips";
     f.chips.forEach(v=>{
-      const b=document.createElement("button"); b.className="chip"; b.textContent=v+'"'; b.dataset.k=f.key; b.dataset.v=v;
+      const b=document.createElement("button"); b.className="chip"; b.textContent=frac(v)+'"'; b.dataset.k=f.key; b.dataset.v=v;
       b.onclick=()=>{ vals[f.key]=String(v); inp.value=v; markChips(); calc(); };
       c.appendChild(b);
     });
@@ -307,11 +340,8 @@ $("copy").onclick=async()=>{
   catch(e){ toast("คัดลอกไม่ได้ในเบราว์เซอร์นี้"); }
 };
 
-document.querySelectorAll("#seg button").forEach(b=>b.onclick=()=>{
-  if(typeOf(sel).g===b.dataset.g) return;
-  sel=TYPES.find(t=>t.g===b.dataset.g).id;
-  $("price").value=getPrice(sel); renderTypes(); calc(); updateSaveBtn(); setStatus("");
-});
+document.querySelectorAll("#seg button").forEach(b=>b.onclick=()=>{ viewG=b.dataset.g; renderTypes(); });
+$("picker").onclick=()=>toggleDrop();
 
 /* ---------- ราคาเริ่มต้นที่บันทึกไว้ ---------- */
 function setStatus(m){ $("saveStatus").textContent=m; }
