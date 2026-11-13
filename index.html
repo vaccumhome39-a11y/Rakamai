@@ -20,12 +20,11 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
-  body{background:var(--bg);color:var(--ink);font-family:"Sarabun",system-ui,sans-serif;font-size:16px;line-height:1.35;
-       display:flex;flex-direction:column;height:100dvh;overflow:hidden}
-  header{flex:none;padding:8px 12px 4px;max-width:900px;width:100%;margin:0 auto;display:flex;align-items:baseline;gap:8px}
+  body{background:var(--bg);color:var(--ink);font-family:"Sarabun",system-ui,sans-serif;font-size:16px;line-height:1.35}
+  header{padding:8px 12px 4px;max-width:900px;width:100%;margin:0 auto;display:flex;align-items:baseline;gap:8px}
   header h1{font-size:19px;margin:0;white-space:nowrap}
   header .f{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  main{flex:1;min-height:0;overflow-y:auto;padding:4px 10px 8px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-content:start;
+  main{padding:4px 10px calc(16px + env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-content:start;
        max-width:900px;width:100%;margin:0 auto}
   .card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
   .card h2{font-size:14px;margin:0 0 6px;color:var(--wood-d)}
@@ -39,7 +38,6 @@
   .picker{width:100%;display:flex;align-items:center;gap:8px;font:inherit;color:inherit;background:#fff;border:1.5px solid var(--wood);border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left}
   .picker .pk{flex:1;display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0}
   .picker b{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .picker #pkPrice{font-weight:700;color:var(--wood-d);white-space:nowrap}
   .picker .arr{font-size:16px;color:var(--wood);transition:transform .25s}
   .picker[aria-expanded="true"] .arr{transform:rotate(180deg)}
   .drop{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease}
@@ -56,6 +54,7 @@
   .ty.on .p{color:#fff}.ty.on .s{color:#d6f0dc}
   .tnote{font-size:12px;color:var(--warn);margin:6px 2px 0}
   .prow{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .prow.under{border-top:1px dashed var(--line);padding-top:8px}
   .prow .l{font-size:13px;color:var(--muted)}
   .prow input{width:92px;font:inherit;font-weight:700;font-size:17px;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px}
   .prow input:focus{outline:0;border-color:var(--wood)}
@@ -87,18 +86,30 @@
   input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
   input[type=number]{-moz-appearance:textfield}
 
-  /* แถบผลลัพธ์ด้านล่าง */
-  .bar{flex:none;background:var(--wood-d);color:#fff;padding:8px 12px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(0,0,0,.12)}
-  .bar .in{max-width:900px;margin:0 auto}
-  .bar .top{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
-  .bar .big{font-size:30px;font-weight:700;line-height:1}
-  .bar .per{font-size:13px;opacity:.9;text-align:right}
-  .bar .formula{font-size:12px;opacity:.8;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .bar .btns{display:flex;gap:6px;margin-top:7px}
+  /* ผลลัพธ์ใต้กล่องขนาด */
+  .res{margin-top:10px;background:var(--wood-d);color:#fff;border-radius:10px;padding:10px 12px;scroll-margin-bottom:12px}
+  .res .top{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+  .res .big{font-size:28px;font-weight:700;line-height:1}
+  .res .per{font-size:13px;opacity:.9;text-align:right}
+  .res .formula{font-size:12px;opacity:.85;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .res .btns{display:flex;gap:6px;margin-top:8px}
   .btn{font:inherit;font-weight:600;font-size:15px;border-radius:9px;padding:8px 10px;border:0;cursor:pointer}
   .btn.pri{background:#fff;color:var(--wood-d);flex:1}
   .btn.sec{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.45)}
   .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:#fff;color:var(--wood-d);font-size:12px;margin-left:4px}
+
+  /* เมนูแก้ไขราคา */
+  .editbtn{font:inherit;font-size:13px;font-weight:600;background:none;border:1.5px solid var(--line);color:var(--muted);border-radius:8px;padding:3px 9px;cursor:pointer}
+  .editbtn.on{border-color:var(--wood);color:var(--wood-d);background:var(--wood-l)}
+  .edbox{margin-top:8px;border:1.5px dashed var(--line);border-radius:10px;padding:8px 10px}
+  .edrow{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
+  .edrow:last-of-type{border-bottom:0}
+  .edrow span{flex:1;font-size:14px;min-width:0}
+  .edrow small{display:block;font-size:11px;color:var(--muted)}
+  .edrow input{width:90px;font:inherit;font-weight:700;font-size:16px;padding:4px 8px;border:1.5px solid var(--line);border-radius:8px;text-align:right}
+  .edrow input:focus{outline:0;border-color:var(--wood)}
+  .edrow input.chg{border-color:var(--accent);background:#eef6ef}
+  .edact{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
 
   /* แผ่นรายการ */
   .sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:10}
@@ -122,12 +133,10 @@
 
   @media (min-width:760px){
     main{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
-    .bar .big{font-size:34px}
   }
   @media (max-height:640px){
     .chips{margin-top:3px}
     .chip{padding:3px 6px;font-size:12.5px}
-    .bar .formula{display:none}
   }
 </style>
 </head>
@@ -139,9 +148,9 @@
 
 <main>
   <section class="card">
-    <h2>1. ชนิดไม้ (ราคาต่อคิว)</h2>
+    <div class="hrow"><h2>1. ชนิดไม้</h2><button class="editbtn" id="editBtn">✏️ แก้ไขราคา</button></div>
     <button class="picker" id="picker" aria-expanded="false">
-      <span class="pk"><b id="pkName"></b><span id="pkPrice"></span></span><span class="arr">▾</span>
+      <span class="pk"><b id="pkName"></b></span><span class="arr">▾</span>
     </button>
     <div class="drop" id="drop">
       <div class="dropin">
@@ -150,35 +159,38 @@
       </div>
     </div>
     <div class="tnote" id="tnote"></div>
-    <div class="prow">
-      <span class="l">ราคาต่อคิว</span>
-      <input id="price" type="number" inputmode="decimal">
-      <button class="sbtn save" id="savePrice" disabled>💾 บันทึกเป็นค่าเริ่มต้น</button>
-      <button class="sbtn rst" id="resetPrice">คืนราคาเดิม</button>
-      <span class="status" id="saveStatus"></span>
+    <div class="drop" id="edit">
+      <div class="dropin">
+        <div class="edbox">
+          <div style="font-size:13px;font-weight:600;color:var(--wood-d);margin-bottom:4px">ราคาต่อคิว (บาท)</div>
+          <div id="edRows"></div>
+          <div class="edact">
+            <button class="sbtn save" id="savePrice" disabled>💾 บันทึก</button>
+            <button class="sbtn rst" id="resetPrice">คืนราคาเดิมทั้งหมด</button>
+            <span class="status" id="saveStatus"></span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <section class="card">
     <h2>2. ขนาด</h2>
     <div id="fields"></div>
+    <div class="res" id="res">
+      <div class="top">
+        <div class="big" id="total">0 บาท</div>
+        <div class="per">ต่อแผ่น <b id="per">0</b> บาท</div>
+      </div>
+      <div class="formula" id="formula">กรอกขนาดไม้เพื่อคำนวณ</div>
+      <div class="btns">
+        <button class="btn pri" id="add">+ เพิ่มลงรายการ</button>
+        <button class="btn sec" id="openList">รายการ<span class="badge" id="cnt">0</span></button>
+        <button class="btn sec" id="reset">ล้าง</button>
+      </div>
+    </div>
   </section>
 </main>
-
-<div class="bar">
-  <div class="in">
-    <div class="top">
-      <div class="big" id="total">0 บาท</div>
-      <div class="per">ต่อแผ่น <b id="per">0</b> บาท</div>
-    </div>
-    <div class="formula" id="formula">กรอกขนาดไม้เพื่อคำนวณ</div>
-    <div class="btns">
-      <button class="btn pri" id="add">+ เพิ่มลงรายการ</button>
-      <button class="btn sec" id="openList">รายการ<span class="badge" id="cnt">0</span></button>
-      <button class="btn sec" id="reset">ล้าง</button>
-    </div>
-  </div>
-</div>
 
 <div class="sheet" id="sheet">
   <div class="panel">
@@ -234,16 +246,14 @@ function renderTypes(){
   const g=viewG;
   document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.g===g));
   TYPES.filter(t=>t.g===g).forEach(t=>{
-    const pr=getPrice(t.id);
     const b=document.createElement("button");
     b.className="ty"+(t.id===sel?" on":"");
-    b.innerHTML=`<span class="n">${t.short}</span><span class="p">${fmt(pr)}</span><span class="s">${pr!==t.price?"ราคาที่บันทึก":""}</span>`;
-    b.onclick=()=>{ sel=t.id; $("price").value=pr; renderTypes(); calc(); updateSaveBtn(); setStatus(""); toggleDrop(false); };
+    b.innerHTML=`<span class="n">${t.short}</span>`;
+    b.onclick=()=>{ sel=t.id; renderTypes(); calc(); toggleDrop(false); };
     box.appendChild(b);
   });
   $("tnote").textContent = typeOf(sel).note;
   $("pkName").textContent = typeOf(sel).name;
-  $("pkPrice").textContent = fmt(getPrice(sel))+" /คิว";
 }
 function toggleDrop(open){
   if(open===undefined) open=!$("drop").classList.contains("open");
@@ -259,6 +269,7 @@ function fieldHTML(f){
 function bindField(d,f){
   const inp=d.querySelector("input"); inp.value=vals[f.key];
   inp.oninput=()=>{ vals[f.key]=inp.value; markChips(); calc(); };
+  inp.addEventListener("focus",showResult);
   d.querySelector(".clr").onclick=()=>{ vals[f.key]=""; inp.value=""; markChips(); calc(); inp.focus(); };
   if(f.chips){
     const c=document.createElement("div"); c.className="chips";
@@ -290,7 +301,7 @@ function markChips(){
 
 function current(){
   const t=parseFloat(vals.t), w=parseFloat(vals.w), l=parseFloat(vals.l);
-  const q=parseFloat(vals.q)||1, p=parseFloat($("price").value), type=typeOf(sel);
+  const q=parseFloat(vals.q)||1, p=getPrice(sel), type=typeOf(sel);
   if(!(t>0&&w>0&&l>0&&p>0)) return {ok:false};
   const per=t*w*l*K*p;
   return {ok:true,t,w,l,q,p,type,per,total:per*q};
@@ -300,7 +311,7 @@ function calc(){
   if(!c.ok){ $("total").textContent="0 บาท"; $("per").textContent="0"; $("formula").textContent="กรอก หนา กว้าง ยาว เพื่อคำนวณ"; return; }
   $("total").textContent=fmt(c.total)+" บาท";
   $("per").textContent=fmt(c.per);
-  $("formula").textContent=`${fmt(c.t)} × ${fmt(c.w)} × ${fmt(c.l)} × 0.0228 × ${fmt(c.p)} = ${fmt(c.per)}`+(c.q!==1?` × ${fmt(c.q)} แผ่น`:"");
+  $("formula").textContent=`${c.type.short} · ${frac(c.t)}" × ${frac(c.w)}" × ${fmt(c.l)} ม.`+(c.q!==1?` × ${fmt(c.q)} แผ่น`:"");
 }
 
 function renderList(){
@@ -311,7 +322,7 @@ function renderList(){
   let sum=0, h='<table>';
   items.forEach((it,i)=>{
     sum+=it.total;
-    h+=`<tr><td>${i+1}.</td><td>${it.name}<br><span style="color:var(--muted);font-size:12px">${fmt(it.t)}″ × ${fmt(it.w)}″ × ${fmt(it.l)} ม. × ${fmt(it.q)} แผ่น · ${fmt(it.p)}/คิว</span></td>
+    h+=`<tr><td>${i+1}.</td><td>${it.name}<br><span style="color:var(--muted);font-size:12px">${frac(it.t)}″ × ${frac(it.w)}″ × ${fmt(it.l)} ม. × ${fmt(it.q)} แผ่น</span></td>
       <td class="num">${fmt(it.total)}</td><td><button class="del" data-i="${i}">✕</button></td></tr>`;
   });
   box.innerHTML=h+'</table>';
@@ -334,7 +345,7 @@ $("sheet").onclick=e=>{ if(e.target.id==="sheet") $("sheet").classList.remove("o
 $("clearList").onclick=()=>{ items=[]; renderList(); };
 $("copy").onclick=async()=>{
   let sum=0;
-  const lines=items.map((it,i)=>{sum+=it.total;return `${i+1}. ${it.name} ${fmt(it.t)}x${fmt(it.w)}" ยาว ${fmt(it.l)} ม. x ${fmt(it.q)} แผ่น = ${fmt(it.total)} บาท`;});
+  const lines=items.map((it,i)=>{sum+=it.total;return `${i+1}. ${it.name} ${frac(it.t)}"x${frac(it.w)}" ยาว ${fmt(it.l)} ม. x ${fmt(it.q)} แผ่น = ${fmt(it.total)} บาท`;});
   lines.push(`รวม ${fmt(sum)} บาท`);
   try{ await navigator.clipboard.writeText(lines.join("\n")); toast("คัดลอกแล้ว"); }
   catch(e){ toast("คัดลอกไม่ได้ในเบราว์เซอร์นี้"); }
@@ -342,42 +353,67 @@ $("copy").onclick=async()=>{
 
 document.querySelectorAll("#seg button").forEach(b=>b.onclick=()=>{ viewG=b.dataset.g; renderTypes(); });
 $("picker").onclick=()=>toggleDrop();
+// เลื่อนให้เห็นราคารวม เวลาแป้นพิมพ์มือถือขึ้นมา
+function showResult(){
+  setTimeout(()=>{
+    const r=$("res").getBoundingClientRect();
+    const vh=(window.visualViewport?window.visualViewport.height:window.innerHeight);
+    if(r.bottom>vh) $("res").scrollIntoView({block:"end",behavior:"smooth"});
+  },350);
+}
 
 /* ---------- ราคาเริ่มต้นที่บันทึกไว้ ---------- */
 function setStatus(m){ $("saveStatus").textContent=m; }
-function updateSaveBtn(){
-  const p=parseFloat($("price").value);
-  $("savePrice").disabled = !(p>0) || p===getPrice(sel);
-  $("resetPrice").style.display = getPrice(sel)!==typeOf(sel).price ? "" : "none";
+function renderEdit(){
+  $("edRows").innerHTML = TYPES.map(t=>`<label class="edrow"><span>${t.name}<small>ราคาเดิม ${fmt(t.price)}</small></span><input type="number" inputmode="decimal" data-id="${t.id}" value="${getPrice(t.id)}"></label>`).join("");
+  $("edRows").querySelectorAll("input").forEach(i=>i.oninput=()=>{ updateEdit(); setStatus(""); });
+  updateEdit();
 }
+function editVals(){
+  const o={}; $("edRows").querySelectorAll("input").forEach(i=>o[i.dataset.id]=parseFloat(i.value)); return o;
+}
+function updateEdit(){
+  const v=editVals(); let changed=false, bad=false;
+  $("edRows").querySelectorAll("input").forEach(i=>{
+    const x=v[i.dataset.id]; const c=x!==getPrice(i.dataset.id);
+    i.classList.toggle("chg",c); if(c) changed=true; if(!(x>0)) bad=true;
+  });
+  $("savePrice").disabled = !changed || bad;
+  $("resetPrice").style.display = Object.keys(saved).length ? "" : "none";
+}
+function toggleEdit(open){
+  if(open===undefined) open=!$("edit").classList.contains("open");
+  if(open){ renderEdit(); setStatus(""); }
+  $("edit").classList.toggle("open",open);
+  $("editBtn").classList.toggle("on",open);
+}
+$("editBtn").onclick=()=>toggleEdit();
 function applySaved(obj){
   const clean={};
   if(obj && typeof obj==="object") for(const t of TYPES){ if(typeof obj[t.id]==="number" && obj[t.id]>0) clean[t.id]=obj[t.id]; }
-  const inputWasDefault = parseFloat($("price").value)===getPrice(sel);
   saved=clean;
-  if(inputWasDefault) $("price").value=getPrice(sel);
-  renderTypes(); calc(); updateSaveBtn();
+  renderTypes(); calc();
+  if(!$("edit").classList.contains("open")) renderEdit(); else updateEdit();
 }
 async function persist(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify(saved)); }catch(e){}
   return "บันทึกไว้ในเครื่องนี้แล้ว";
 }
 $("savePrice").onclick=async()=>{
-  const p=parseFloat($("price").value); if(!(p>0)) return;
-  saved={...saved,[sel]:p};
-  $("savePrice").disabled=true; setStatus("กำลังบันทึก…"); renderTypes();
-  setStatus(await persist()); toast("บันทึกราคาเริ่มต้นแล้ว"); updateSaveBtn();
+  const v=editVals(), n={};
+  for(const t of TYPES){ const x=v[t.id]; if(x>0 && x!==t.price) n[t.id]=x; }
+  saved=n;
+  $("savePrice").disabled=true; setStatus("กำลังบันทึก…");
+  renderTypes(); calc(); renderEdit();
+  setStatus(await persist()); toast("บันทึกราคาแล้ว");
 };
 $("resetPrice").onclick=async()=>{
-  const n={...saved}; delete n[sel]; saved=n;
-  $("price").value=getPrice(sel); renderTypes(); calc(); updateSaveBtn();
+  saved={}; renderTypes(); calc(); renderEdit();
   setStatus("กำลังบันทึก…"); setStatus(await persist()); toast("คืนราคาเดิมแล้ว");
 };
-$("price").oninput=()=>{ calc(); updateSaveBtn(); setStatus(""); };
 
 try{ const ls=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(ls) saved=ls; }catch(e){}
-$("price").value=getPrice(sel);
-renderTypes(); renderFields(); renderList(); calc(); updateSaveBtn();
+renderTypes(); renderFields(); renderList(); calc(); renderEdit();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
